@@ -33,6 +33,8 @@ class HasilPerhitunganController extends Controller
         $penggabungan = $this->getHasilPenggabungan($karyawans, $saw['nilaiPreferensi'], $topsis['nilaiPreferensi']);
         $ranking = $this->getRanking($karyawans, $id_riwayat, $penggabungan);
 
+        // return $ranking;
+
         return view('perhitungan.hasil', compact('karyawans','kriterias','matrixNilai','topsis','saw', 'penggabungan','ranking'));
     }
 
@@ -83,17 +85,20 @@ class HasilPerhitunganController extends Controller
 
     protected function getRanking($alternatif, $id_riwayat, $penggabungan)
     {
-        $alternatif = Karyawan::all();
         $count = HasilAkhir::where('id_riwayat_perhitungan', $id_riwayat)->count();
+        $alternatif = NilaiAlternatifKriteria::where('id_riwayat_perhitungan', $id_riwayat)->select('id_riwayat_perhitungan', 'id_karyawan')->distinct('id_karyawan')->get();
 
         if($count == 0)
         {
             foreach($alternatif as $row)
             {
+
+                $karyawan = Karyawan::where('id', $row->id_karyawan)->first();
+
                 $insert = new HasilAkhir;
                 $insert->id_riwayat_perhitungan = $id_riwayat;
-                $insert->id_karyawan = $row->id;
-                $insert->nilai = $penggabungan[$row->name];
+                $insert->id_karyawan = $karyawan->id;
+                $insert->nilai = $penggabungan[$karyawan->name];
                 $insert->save();
             }
         }
